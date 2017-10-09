@@ -11,9 +11,15 @@ import hudson.model.Node;
 import hudson.model.labels.LabelAtom;
 import jenkins.model.Jenkins;
 
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken;
+
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.logging.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 public class NomadSlaveTemplate implements Describable<NomadSlaveTemplate> {
 
@@ -29,6 +35,7 @@ public class NomadSlaveTemplate implements Describable<NomadSlaveTemplate> {
     private final int disk;
     private final int priority;
     private final String labels;
+    private final List<? extends NomadConstraintTemplate> constraints;
     private final String region;
     private final String remoteFs;
     private final String image;
@@ -53,6 +60,7 @@ public class NomadSlaveTemplate implements Describable<NomadSlaveTemplate> {
             String memory,
             String disk,
             String labels,
+            List<? extends NomadConstraintTemplate> constraints,
             String remoteFs,
             String idleTerminationInMinutes,
             Boolean reusable,
@@ -81,6 +89,11 @@ public class NomadSlaveTemplate implements Describable<NomadSlaveTemplate> {
         this.mode = mode;
         this.remoteFs = remoteFs;
         this.labels = Util.fixNull(labels);
+        if (constraints == null) {
+            this.constraints = Collections.emptyList();
+        } else {
+            this.constraints = constraints;
+        }
         this.labelSet = Label.parse(labels);
         this.region = region;
         this.image = image;
@@ -148,6 +161,10 @@ public class NomadSlaveTemplate implements Describable<NomadSlaveTemplate> {
 
     public String getLabels() {
         return labels;
+    }
+
+    public List<NomadConstraintTemplate> getConstraints() {
+        return Collections.unmodifiableList(constraints);
     }
 
     public int getIdleTerminationInMinutes() {
